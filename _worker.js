@@ -1,6 +1,5 @@
 let latestData = {
   db: 0,
-  rms: 0,
   warning: false,
   buzzer: true,
   device: null,
@@ -11,18 +10,13 @@ export default {
   async fetch(request, env, ctx) {
     const url = new URL(request.url);
 
-    // ==========================================
-    // CORS
-    // ==========================================
     const corsHeaders = {
       "Access-Control-Allow-Origin": "*",
       "Access-Control-Allow-Methods": "GET, POST, OPTIONS",
       "Access-Control-Allow-Headers": "Content-Type, X-API-Key"
     };
 
-    // ==========================================
-    // OPTIONS / CORS
-    // ==========================================
+    // CORS
     if (request.method === "OPTIONS") {
       return new Response(null, {
         status: 204,
@@ -30,12 +24,11 @@ export default {
       });
     }
 
-    // ==========================================
-    // POST DATA DARI ESP32
-    // ==========================================
+    // =========================================
+    // DATA DARI ESP32
+    // =========================================
     if (url.pathname === "/api/sensor" && request.method === "POST") {
       try {
-        // Cek API Key
         const apiKey = request.headers.get("X-API-Key");
 
         if (apiKey !== "PeTImlPYZj4exKFr7X7YQv9H3XdvSDOT68Hryi0+tos=") {
@@ -54,14 +47,10 @@ export default {
           );
         }
 
-        // Ambil JSON dari ESP32
         const data = await request.json();
 
-        console.log("Data diterima:", data);
+        console.log("Data dari ESP32:", data);
 
-        // ==========================================
-        // AMBIL DATA TERAKHIR
-        // ==========================================
         if (
           data.readings &&
           Array.isArray(data.readings) &&
@@ -71,7 +60,6 @@ export default {
 
           latestData = {
             db: Number(reading.db) || 0,
-            rms: Number(reading.rms) || 0,
             warning: reading.warning === true,
             buzzer: data.buzzer !== undefined
               ? data.buzzer === true
@@ -84,7 +72,7 @@ export default {
         return new Response(
           JSON.stringify({
             status: "success",
-            message: "Data diterima!",
+            message: "Data diterima",
             data: latestData
           }),
           {
@@ -96,9 +84,7 @@ export default {
           }
         );
 
-      } catch (err) {
-        console.log("Error:", err);
-
+      } catch (error) {
         return new Response(
           JSON.stringify({
             status: "error",
@@ -115,9 +101,9 @@ export default {
       }
     }
 
-    // ==========================================
-    // GET DATA TERBARU UNTUK WEBSITE
-    // ==========================================
+    // =========================================
+    // DATA TERBARU UNTUK WEBSITE
+    // =========================================
     if (url.pathname === "/api/sensor" && request.method === "GET") {
       return new Response(
         JSON.stringify(latestData),
@@ -131,9 +117,9 @@ export default {
       );
     }
 
-    // ==========================================
+    // =========================================
     // FILE WEBSITE
-    // ==========================================
+    // =========================================
     return env.ASSETS.fetch(request);
   }
 };
