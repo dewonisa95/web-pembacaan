@@ -1,0 +1,326 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Peringatan Kebisingan & Sound Level Meter</title>
+    <style>
+        :root {
+            --bg-primary: #090d16;
+            --card-bg: #131c2e;
+            --card-border: #1e293b;
+            --accent-green: #10b981;
+            --accent-red: #ef4444;
+            --text-main: #f8fafc;
+            --text-muted: #94a3b8;
+        }
+
+        * { box-sizing: border-box; font-family: 'Inter', system-ui, -apple-system, sans-serif; }
+        
+        body { 
+            margin: 0; padding: 20px; 
+            background: radial-gradient(circle at top, #111e38 0%, var(--bg-primary) 100%); 
+            color: var(--text-main); 
+            display: flex; justify-content: center; align-items: center; 
+            min-height: 100vh; overflow-x: hidden;
+        }
+
+        .dashboard-wrapper {
+            width: 100%; max-width: 440px;
+            display: flex; flex-direction: column; gap: 20px;
+        }
+
+        /* Desain Kartu Utama dengan Efek Glow */
+        .card { 
+            background-color: var(--card-bg); 
+            border-radius: 28px; 
+            box-shadow: 0 20px 40px rgba(0, 0, 0, 0.5), inset 0 1px 0 rgba(255, 255, 255, 0.05); 
+            overflow: hidden; 
+            border: 1px solid var(--card-border); 
+            display: flex; flex-direction: column; 
+            position: relative;
+            transition: all 0.4s cubic-bezier(0.4, 0, 0.2, 1);
+        }
+
+        /* Hiasan Ornamen Lingkaran Glow di Latar Belakang Kartu */
+        .card::before {
+            content: '';
+            position: absolute;
+            top: -50px; right: -50px;
+            width: 150px; height: 150px;
+            background: rgba(16, 185, 129, 0.07);
+            border-radius: 50%;
+            filter: blur(40px);
+            z-index: 0;
+            pointer-events: none;
+        }
+
+        /* Header Kecil di Atas Kartu */
+        .card-header {
+            padding: 20px 24px 0 24px;
+            display: flex; justify-content: space-between; align-items: center;
+            z-index: 1;
+        }
+
+        .brand-badge {
+            display: flex; align-items: center; gap: 8px;
+            font-size: 0.8rem; font-weight: 600; color: var(--text-muted);
+            background: rgba(255, 255, 255, 0.03);
+            padding: 6px 12px; border-radius: 20px;
+            border: 1px solid rgba(255, 255, 255, 0.05);
+        }
+
+        .status-dot {
+            width: 8px; height: 8px; border-radius: 50%;
+            background-color: #64748b;
+            box-shadow: 0 0 8px currentColor;
+            transition: background-color 0.3s;
+        }
+
+        /* Area Status Utama di Tengah */
+        .status-container { 
+            padding: 30px 24px 40px 24px; text-align: center; 
+            display: flex; flex-direction: column; align-items: center; justify-content: center; 
+            transition: all 0.4s ease; 
+            z-index: 1;
+        }
+
+        /* Icon Wrapper dengan Efek Transisi Animasi */
+        .icon-wrapper {
+            width: 80px; height: 80px; border-radius: 50%;
+            display: flex; align-items: center; justify-content: center;
+            font-size: 2.2rem; margin-bottom: 20px;
+            background: rgba(255, 255, 255, 0.03);
+            border: 1px solid rgba(255, 255, 255, 0.08);
+            box-shadow: 0 10px 25px rgba(0,0,0,0.2);
+            transition: transform 0.3s ease, background 0.3s ease;
+        }
+
+        .status-title { 
+            font-size: 2.4rem; font-weight: 900; margin: 0; 
+            line-height: 1.15; letter-spacing: 0.5px; 
+            text-shadow: 0 2px 10px rgba(0,0,0,0.3);
+        }
+        
+        .status-subtitle { 
+            font-size: 0.95rem; font-weight: 500; margin-top: 12px; 
+            letter-spacing: 0.3px;
+        }
+        
+        /* Tema Warna Dinamis: Menunggu */
+        .menunggu-theme .status-dot { background-color: #94a3b8; color: #94a3b8; }
+        .menunggu-theme .icon-wrapper { color: #94a3b8; }
+        .menunggu-theme .status-title { color: #94a3b8; }
+        .menunggu-theme .status-subtitle { color: #64748b; }
+
+        /* Tema Warna Dinamis: Aman */
+        .aman-theme .status-dot { background-color: #34d399; color: #34d399; }
+        .aman-theme .icon-wrapper { color: #34d399; background: rgba(52, 211, 153, 0.08); border-color: rgba(52, 211, 153, 0.2); }
+        .aman-theme .status-title { color: #34d399; }
+        .aman-theme .status-subtitle { color: #10b981; opacity: 0.9; }
+
+        /* Tema Warna Dinamis: Berisik (Peringatan) */
+        .berisik-theme .status-dot { background-color: #ef4444; color: #ef4444; }
+        .berisik-theme .icon-wrapper { color: #ef4444; background: rgba(239, 68, 68, 0.12); border-color: rgba(239, 68, 68, 0.3); animation: bounce-icon 0.8s infinite alternate; }
+        .berisik-theme .status-title { color: #ef4444; }
+        .berisik-theme .status-subtitle { color: #f87171; font-weight: 700; }
+        
+        .berisik-card { 
+            animation: pulse-bg 1s infinite; 
+            border-color: rgba(239, 68, 68, 0.4) !important;
+        }
+        
+        @keyframes pulse-bg {
+            0% { box-shadow: 0 0 0 0 rgba(239, 68, 68, 0.4), 0 20px 40px rgba(0,0,0,0.5); }
+            70% { box-shadow: 0 0 0 20px rgba(239, 68, 68, 0), 0 20px 40px rgba(0,0,0,0.5); }
+            100% { box-shadow: 0 0 0 0 rgba(239, 68, 68, 0), 0 20px 40px rgba(0,0,0,0.5); }
+        }
+
+        @keyframes bounce-icon {
+            0% { transform: scale(1); }
+            100% { transform: scale(1.12); }
+        }
+
+        /* Panel Bawah (Info & Kontrol) */
+        .bottom-panel { 
+            background-color: rgba(15, 23, 42, 0.6); 
+            backdrop-filter: blur(10px);
+            padding: 24px; 
+            border-top: 1px solid var(--card-border); 
+            display: flex; flex-direction: column; gap: 16px;
+            z-index: 1;
+        }
+        
+        /* Kotak Desibel Modern */
+        .db-box { 
+            background: rgba(30, 41, 59, 0.5); 
+            border-radius: 20px; padding: 16px 20px; 
+            display: flex; justify-content: space-between; align-items: center; 
+            border: 1px solid rgba(255, 255, 255, 0.05); 
+        }
+        .db-info-group { display: flex; flex-direction: column; }
+        .db-label { font-size: 0.8rem; color: var(--text-muted); font-weight: 500; text-transform: uppercase; letter-spacing: 0.5px; }
+        .db-subtext { font-size: 0.75rem; color: #64748b; margin-top: 2px; }
+        
+        .db-value-container { display: flex; align-items: baseline; gap: 4px; }
+        .db-value { font-size: 2.2rem; font-weight: 800; margin: 0; color: var(--text-main); line-height: 1; }
+        .db-unit { font-size: 1rem; color: var(--text-muted); font-weight: 600; }
+        
+        /* Kotak Kontrol Buzzer */
+        .control-box { 
+            background: rgba(30, 41, 59, 0.5); 
+            border-radius: 20px; padding: 16px 20px; 
+            display: flex; justify-content: space-between; align-items: center; 
+            border: 1px solid rgba(255, 255, 255, 0.05); 
+        }
+        .control-label { font-size: 0.9rem; font-weight: 600; color: #cbd5e1; display: flex; align-items: center; gap: 8px; }
+        
+        /* Desain Saklar (Toggle Switch) iOS Style Elegan */
+        .switch { position: relative; display: inline-block; width: 52px; height: 28px; }
+        .switch input { opacity: 0; width: 0; height: 0; }
+        .slider { 
+            position: absolute; cursor: pointer; top: 0; left: 0; right: 0; bottom: 0; 
+            background-color: #334155; transition: .3s cubic-bezier(0.4, 0, 0.2, 1); 
+            border-radius: 34px; border: 1px solid rgba(255,255,255,0.05);
+        }
+        .slider:before { 
+            position: absolute; content: ""; height: 20px; width: 20px; 
+            left: 3px; bottom: 3px; background-color: white; 
+            transition: .3s cubic-bezier(0.4, 0, 0.2, 1); 
+            border-radius: 50%; 
+            box-shadow: 0 2px 4px rgba(0,0,0,0.2);
+        }
+        input:checked + .slider { background-color: var(--accent-green); }
+        input:checked + .slider:before { transform: translateX(24px); }
+
+        /* Footer Info Kecil */
+        .footer-info {
+            text-align: center;
+            font-size: 0.75rem;
+            color: #64748b;
+            letter-spacing: 0.2px;
+        }
+    </style>
+</head>
+
+<body>
+    <div class="dashboard-wrapper">
+        
+        <!-- Kartu Utama Dashboard -->
+        <div class="card menunggu-theme" id="mainCard">
+            
+            <!-- Header Kartu -->
+            <div class="card-header">
+                <div class="brand-badge">
+                    <div class="status-dot" id="statusDot"></div>
+                    <span id="connectionBadge">Mencari Sinyal...</span>
+                </div>
+                <span style="font-size: 0.8rem; color: #64748b; font-weight: 600;">ESP32 IoT</span>
+            </div>
+
+            <!-- Status Peringatan Raksasa di Tengah -->
+            <div class="status-container" id="statusContainer">
+                <div class="icon-wrapper" id="statusIcon">⏳</div>
+                <h1 class="status-title" id="statusText">MENUNGGU</h1>
+                <div class="status-subtitle" id="statusSub">Menghubungkan ke Sensor ESP32...</div>
+            </div>
+
+            <!-- Panel Data dan Kontrol di Bawah -->
+            <div class="bottom-panel">
+                
+                <!-- Kotak Nilai dB -->
+                <div class="db-box">
+                    <div class="db-info-group">
+                        <span class="db-label">Intensitas Suara</span>
+                        <span class="db-subtext">Ambang Batas: 55 dB</span>
+                    </div>
+                    <div class="db-value-container">
+                        <span class="db-value" id="dbValue">--</span>
+                        <span class="db-unit">dB</span>
+                    </div>
+                </div>
+
+                <!-- Kotak Kontrol Buzzer -->
+                <div class="control-box">
+                    <span class="control-label">
+                        <span>🔔</span> Alarm Buzzer
+                    </span>
+                    <label class="switch">
+                        <input type="checkbox" id="buzzerToggle" onchange="toggleBuzzer(this.checked)" checked>
+                        <span class="slider"></span>
+                    </label>
+                </div>
+
+            </div>
+        </div>
+
+        <div class="footer-info">
+            Noise Guard System &bull; Real-time Monitoring & Hosting Ready
+        </div>
+    </div>
+
+    <script>
+        // Fungsi untuk mengirim perintah ON/OFF Buzzer ke ESP32
+        function toggleBuzzer(isChecked) {
+            fetch(`/buzzer?state=${isChecked ? 'on' : 'off'}`).catch(err => console.log('Network error:', err));
+        }
+
+        // Fungsi menarik data dari ESP32 secara berkala
+        function fetchESP32Data() {
+            fetch('/data')
+                .then(response => response.json())
+                .then(data => {
+                    // Update Angka dB di bawah
+                    document.getElementById('dbValue').innerText = data.db.toFixed(1);
+
+                    const mainCard = document.getElementById('mainCard');
+                    const statusContainer = document.getElementById('statusContainer');
+                    const statusIcon = document.getElementById('statusIcon');
+                    const statusText = document.getElementById('statusText');
+                    const statusSub = document.getElementById('statusSub');
+                    const statusDot = document.getElementById('statusDot');
+                    const connectionBadge = document.getElementById('connectionBadge');
+
+                    connectionBadge.innerText = "Terhubung";
+                    statusDot.style.backgroundColor = "#34d399";
+
+                    // Ganti Tema, Teks, dan Ikon Berdasarkan Status dari ESP32
+                    if (data.warning === true) {
+                        mainCard.className = "card berisik-theme berisik-card";
+                        statusIcon.innerHTML = "🚨";
+                        statusText.innerHTML = "HARAP<br>TENANG!";
+                        statusSub.innerText = "LINGKUNGAN TERLALU BISING (>55 dB)";
+                    } else {
+                        mainCard.className = "card aman-theme";
+                        statusIcon.innerHTML = "🛡️";
+                        statusText.innerHTML = "AMAN";
+                        statusSub.innerText = "Tingkat Suara Normal & Terkendali";
+                    }
+
+                    // Sinkronisasi status tombol saklar di layar dengan alat asli
+                    const toggleBtn = document.getElementById('buzzerToggle');
+                    if (toggleBtn && document.activeElement !== toggleBtn) {
+                        if (data.buzzer !== undefined) {
+                            toggleBtn.checked = data.buzzer;
+                        }
+                    }
+                })
+                .catch(error => {
+                    // Jika ESP32 belum merespons (misal saat dites offline atau gangguan)
+                    const mainCard = document.getElementById('mainCard');
+                    mainCard.className = "card menunggu-theme";
+                    document.getElementById('connectionBadge').innerText = "Menunggu...";
+                    document.getElementById('statusDot').style.backgroundColor = "#94a3b8";
+                    document.getElementById('statusIcon').innerHTML = "⏳";
+                    document.getElementById('statusText').innerHTML = "MENUNGGU";
+                    document.getElementById('statusSub').innerText = "Menghubungkan ke ESP32...";
+                    console.log("Menunggu koneksi...", error);
+                });
+        }
+
+        // Jalankan fungsi update otomatis setiap 500ms
+        setInterval(fetchESP32Data, 500);
+        fetchESP32Data();
+    </script>
+</body>
+</html>
