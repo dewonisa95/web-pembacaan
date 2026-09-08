@@ -1,0 +1,10 @@
+{
+  "$schema": "./node_modules/wrangler/config-schema.json",
+  "name": "sensor",
+  "main": "_worker.js",
+  "compatibility_date": "2026-09-08",
+  "assets": {
+    "directory": ".",
+    "binding": "ASSETS"
+  }
+}
