@@ -39,9 +39,13 @@ export default {
             }),
             {
               status: 401,
-              headers: {
-                "Content-Type": "application/json",
-                ...corsHeaders
+             headers: {
+  "Content-Type": "application/json",
+  "Cache-Control": "no-store, no-cache, must-revalidate, proxy-revalidate",
+  "Pragma": "no-cache",
+  "Expires": "0",
+  ...corsHeaders
+}
               }
             }
           );
