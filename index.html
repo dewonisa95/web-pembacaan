@@ -266,10 +266,12 @@
         }
 
         // Fungsi menarik data dari ESP32 secara berkala
-        function fetchESP32Data() {
-           fetch('/api/sensor')
-                .then(response => response.json())
-                .then(data => {
+      function fetchESP32Data() {
+    fetch('/api/sensor?t=' + Date.now(), {
+        cache: 'no-store'
+    })
+        .then(response => response.json())
+        .then(data => {
                     // Update Angka dB di bawah
                     document.getElementById('dbValue').innerText = data.db.toFixed(1);
 
