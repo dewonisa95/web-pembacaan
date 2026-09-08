@@ -267,7 +267,7 @@
 
         // Fungsi menarik data dari ESP32 secara berkala
         function fetchESP32Data() {
-            fetch('/data')
+           fetch('/api/sensor')
                 .then(response => response.json())
                 .then(data => {
                     // Update Angka dB di bawah
