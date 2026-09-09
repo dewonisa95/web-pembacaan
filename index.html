@@ -6,14 +6,11 @@
     <title>Peringatan Kebisingan & Sound Level Meter</title>
     <style>
         :root {
-            --bg-primary: #050810;
-            --card-bg: rgba(19, 28, 46, 0.65);
-            --card-border: rgba(255, 255, 255, 0.1);
+            --bg-primary: #090d16;
+            --card-bg: #131c2e;
+            --card-border: #1e293b;
             --accent-green: #10b981;
-            --accent-green-glow: rgba(16, 185, 129, 0.4);
             --accent-red: #ef4444;
-            --accent-red-glow: rgba(239, 68, 68, 0.4);
-            --accent-wait: #64748b;
             --text-main: #f8fafc;
             --text-muted: #94a3b8;
         }
@@ -22,254 +19,191 @@
         
         body { 
             margin: 0; padding: 20px; 
-            background-color: var(--bg-primary); 
+            background: radial-gradient(circle at top, #111e38 0%, var(--bg-primary) 100%); 
             color: var(--text-main); 
             display: flex; justify-content: center; align-items: center; 
             min-height: 100vh; overflow-x: hidden;
-            position: relative;
-            transition: background 0.8s ease;
         }
-
-        /* Ornamen Cahaya Ambient di Latar Belakang (Ambient Orbs) */
-        .ambient-orb {
-            position: absolute;
-            border-radius: 50%;
-            filter: blur(100px);
-            z-index: -1;
-            transition: all 1s ease;
-            opacity: 0.5;
-        }
-        .orb-1 { top: -10%; left: -10%; width: 40vw; height: 40vw; background: var(--accent-wait); }
-        .orb-2 { bottom: -10%; right: -10%; width: 50vw; height: 50vw; background: var(--accent-wait); opacity: 0.3; }
 
         .dashboard-wrapper {
-            width: 100%; 
-            max-width: 750px; /* Lebar pas untuk fokus ke tengah */
-            display: flex; flex-direction: column; gap: 24px;
-            z-index: 1;
+            width: 100%; max-width: 440px;
+            display: flex; flex-direction: column; gap: 20px;
         }
 
-        /* Desain Kartu Utama Glassmorphism */
+        /* Desain Kartu Utama dengan Efek Glow */
         .card { 
-            background: var(--card-bg); 
-            backdrop-filter: blur(24px);
-            -webkit-backdrop-filter: blur(24px);
-            border-radius: 32px; 
-            box-shadow: 0 24px 48px rgba(0, 0, 0, 0.4), inset 0 1px 0 rgba(255, 255, 255, 0.1); 
+            background-color: var(--card-bg); 
+            border-radius: 28px; 
+            box-shadow: 0 20px 40px rgba(0, 0, 0, 0.5), inset 0 1px 0 rgba(255, 255, 255, 0.05); 
+            overflow: hidden; 
             border: 1px solid var(--card-border); 
             display: flex; flex-direction: column; 
             position: relative;
-            transition: all 0.5s cubic-bezier(0.4, 0, 0.2, 1);
-            overflow: hidden;
+            transition: all 0.4s cubic-bezier(0.4, 0, 0.2, 1);
         }
 
-        /* Header Kartu (Badge Koneksi) */
+        /* Hiasan Ornamen Lingkaran Glow di Latar Belakang Kartu */
+        .card::before {
+            content: '';
+            position: absolute;
+            top: -50px; right: -50px;
+            width: 150px; height: 150px;
+            background: rgba(16, 185, 129, 0.07);
+            border-radius: 50%;
+            filter: blur(40px);
+            z-index: 0;
+            pointer-events: none;
+        }
+
+        /* Header Kecil di Atas Kartu */
         .card-header {
-            padding: 24px 32px 0 32px;
+            padding: 20px 24px 0 24px;
             display: flex; justify-content: space-between; align-items: center;
-            z-index: 2;
+            z-index: 1;
         }
 
         .brand-badge {
-            display: flex; align-items: center; gap: 10px;
-            font-size: 0.85rem; font-weight: 600; color: var(--text-muted);
-            background: rgba(0, 0, 0, 0.3);
-            padding: 8px 16px; border-radius: 30px;
+            display: flex; align-items: center; gap: 8px;
+            font-size: 0.8rem; font-weight: 600; color: var(--text-muted);
+            background: rgba(255, 255, 255, 0.03);
+            padding: 6px 12px; border-radius: 20px;
             border: 1px solid rgba(255, 255, 255, 0.05);
-            backdrop-filter: blur(10px);
         }
 
         .status-dot {
-            width: 10px; height: 10px; border-radius: 50%;
-            background-color: var(--accent-wait);
-            box-shadow: 0 0 12px currentColor;
+            width: 8px; height: 8px; border-radius: 50%;
+            background-color: #64748b;
+            box-shadow: 0 0 8px currentColor;
             transition: background-color 0.3s;
         }
 
-        /* Area Status Utama (Posisi Tengah) */
+        /* Area Status Utama di Tengah */
         .status-container { 
-            padding: 40px 24px 60px 24px; 
-            text-align: center; 
+            padding: 30px 24px 40px 24px; text-align: center; 
             display: flex; flex-direction: column; align-items: center; justify-content: center; 
             transition: all 0.4s ease; 
-            z-index: 2;
-            position: relative;
-        }
-
-        /* Ornamen Gelombang Suara (Ripple) di belakang Icon */
-        .ripple-ring {
-            position: absolute;
-            width: 100px; height: 100px;
-            background: transparent;
-            border-radius: 50%;
-            border: 2px solid transparent;
-            z-index: 0;
-            opacity: 0;
-        }
-
-        /* Icon Wrapper dengan Efek Glow */
-        .icon-wrapper {
-            width: 100px; height: 100px; border-radius: 50%;
-            display: flex; align-items: center; justify-content: center;
-            font-size: 3rem; margin-bottom: 24px;
-            background: rgba(255, 255, 255, 0.03);
-            border: 2px solid rgba(255, 255, 255, 0.1);
-            box-shadow: 0 10px 30px rgba(0,0,0,0.3);
-            transition: all 0.4s cubic-bezier(0.34, 1.56, 0.64, 1);
             z-index: 1;
-            position: relative;
+        }
+
+        /* Icon Wrapper dengan Efek Transisi Animasi */
+        .icon-wrapper {
+            width: 80px; height: 80px; border-radius: 50%;
+            display: flex; align-items: center; justify-content: center;
+            font-size: 2.2rem; margin-bottom: 20px;
+            background: rgba(255, 255, 255, 0.03);
+            border: 1px solid rgba(255, 255, 255, 0.08);
+            box-shadow: 0 10px 25px rgba(0,0,0,0.2);
+            transition: transform 0.3s ease, background 0.3s ease;
         }
 
         .status-title { 
-            font-size: 3rem; font-weight: 900; margin: 0; 
-            line-height: 1.1; letter-spacing: 1px; 
-            text-shadow: 0 4px 20px rgba(0,0,0,0.4);
-            z-index: 1;
+            font-size: 2.4rem; font-weight: 900; margin: 0; 
+            line-height: 1.15; letter-spacing: 0.5px; 
+            text-shadow: 0 2px 10px rgba(0,0,0,0.3);
         }
         
         .status-subtitle { 
-            font-size: 1.1rem; font-weight: 500; margin-top: 16px; 
-            letter-spacing: 0.5px;
+            font-size: 0.95rem; font-weight: 500; margin-top: 12px; 
+            letter-spacing: 0.3px;
+        }
+        
+        /* Tema Warna Dinamis: Menunggu */
+        .menunggu-theme .status-dot { background-color: #94a3b8; color: #94a3b8; }
+        .menunggu-theme .icon-wrapper { color: #94a3b8; }
+        .menunggu-theme .status-title { color: #94a3b8; }
+        .menunggu-theme .status-subtitle { color: #64748b; }
+
+        /* Tema Warna Dinamis: Aman */
+        .aman-theme .status-dot { background-color: #34d399; color: #34d399; }
+        .aman-theme .icon-wrapper { color: #34d399; background: rgba(52, 211, 153, 0.08); border-color: rgba(52, 211, 153, 0.2); }
+        .aman-theme .status-title { color: #34d399; }
+        .aman-theme .status-subtitle { color: #10b981; opacity: 0.9; }
+
+        /* Tema Warna Dinamis: Berisik (Peringatan) */
+        .berisik-theme .status-dot { background-color: #ef4444; color: #ef4444; }
+        .berisik-theme .icon-wrapper { color: #ef4444; background: rgba(239, 68, 68, 0.12); border-color: rgba(239, 68, 68, 0.3); animation: bounce-icon 0.8s infinite alternate; }
+        .berisik-theme .status-title { color: #ef4444; }
+        .berisik-theme .status-subtitle { color: #f87171; font-weight: 700; }
+        
+        .berisik-card { 
+            animation: pulse-bg 1s infinite; 
+            border-color: rgba(239, 68, 68, 0.4) !important;
+        }
+        
+        @keyframes pulse-bg {
+            0% { box-shadow: 0 0 0 0 rgba(239, 68, 68, 0.4), 0 20px 40px rgba(0,0,0,0.5); }
+            70% { box-shadow: 0 0 0 20px rgba(239, 68, 68, 0), 0 20px 40px rgba(0,0,0,0.5); }
+            100% { box-shadow: 0 0 0 0 rgba(239, 68, 68, 0), 0 20px 40px rgba(0,0,0,0.5); }
+        }
+
+        @keyframes bounce-icon {
+            0% { transform: scale(1); }
+            100% { transform: scale(1.12); }
+        }
+
+        /* Panel Bawah (Info & Kontrol) */
+        .bottom-panel { 
+            background-color: rgba(15, 23, 42, 0.6); 
+            backdrop-filter: blur(10px);
+            padding: 24px; 
+            border-top: 1px solid var(--card-border); 
+            display: flex; flex-direction: column; gap: 16px;
             z-index: 1;
         }
-
-        /* === TEMA: MENUNGGU === */
-        .menunggu-theme .status-title { color: var(--text-muted); }
-        .menunggu-theme .status-subtitle { color: #64748b; }
-        .menunggu-theme .icon-wrapper { color: var(--text-muted); }
-        body.menunggu-mode .orb-1, body.menunggu-mode .orb-2 { background: #334155; }
-
-        /* === TEMA: AMAN === */
-        .aman-theme .status-dot { background-color: var(--accent-green); color: var(--accent-green); }
-        .aman-theme .icon-wrapper { 
-            color: var(--accent-green); 
-            background: rgba(16, 185, 129, 0.1); 
-            border-color: rgba(16, 185, 129, 0.3);
-            box-shadow: 0 0 40px rgba(16, 185, 129, 0.2);
-        }
-        .aman-theme .status-title { color: var(--accent-green); text-shadow: 0 0 30px rgba(16, 185, 129, 0.3); }
-        .aman-theme .status-subtitle { color: #34d399; opacity: 0.9; }
-        body.aman-mode .orb-1 { background: rgba(16, 185, 129, 0.15); }
-        body.aman-mode .orb-2 { background: rgba(5, 150, 105, 0.1); }
-
-        /* === TEMA: BERISIK === */
-        .berisik-theme .status-dot { background-color: var(--accent-red); color: var(--accent-red); }
-        .berisik-theme .icon-wrapper { 
-            color: var(--accent-red); 
-            background: rgba(239, 68, 68, 0.15); 
-            border-color: rgba(239, 68, 68, 0.5); 
-            box-shadow: 0 0 50px rgba(239, 68, 68, 0.4);
-            animation: pulse-icon 1s infinite alternate; 
-        }
-        .berisik-theme .status-title { color: var(--accent-red); text-shadow: 0 0 40px rgba(239, 68, 68, 0.5); }
-        .berisik-theme .status-subtitle { color: #fca5a5; font-weight: 700; }
         
-        .berisik-theme .ripple-ring {
-            border-color: rgba(239, 68, 68, 0.6);
-            animation: ripple-effect 1.5s linear infinite;
-        }
-        
-        body.berisik-mode .orb-1 { background: rgba(239, 68, 68, 0.2); }
-        body.berisik-mode .orb-2 { background: rgba(185, 28, 28, 0.15); }
-
-        .berisik-card { border-color: rgba(239, 68, 68, 0.5) !important; }
-
-        @keyframes pulse-icon {
-            0% { transform: scale(1); }
-            100% { transform: scale(1.15); }
-        }
-
-        @keyframes ripple-effect {
-            0% { transform: scale(1); opacity: 0.8; }
-            100% { transform: scale(2.5); opacity: 0; }
-        }
-
-        /* Panel Bawah (Grid Layout) */
-        .bottom-panel { 
-            background-color: rgba(0, 0, 0, 0.2); 
-            padding: 30px; 
-            border-top: 1px solid var(--card-border); 
-            display: grid;
-            grid-template-columns: 1fr; /* Default Mobile: Susun bawah */
-            gap: 20px;
-            z-index: 2;
-        }
-        
-        /* Kotak Info (Desibel & Buzzer) */
-        .info-box { 
-            background: rgba(255, 255, 255, 0.03); 
-            border-radius: 24px; padding: 24px; 
+        /* Kotak Desibel Modern */
+        .db-box { 
+            background: rgba(30, 41, 59, 0.5); 
+            border-radius: 20px; padding: 16px 20px; 
             display: flex; justify-content: space-between; align-items: center; 
             border: 1px solid rgba(255, 255, 255, 0.05); 
-            transition: transform 0.3s ease;
         }
-        .info-box:hover { background: rgba(255, 255, 255, 0.05); transform: translateY(-2px); }
-
-        .db-info-group { display: flex; flex-direction: column; gap: 4px; }
-        .box-label { font-size: 0.85rem; color: var(--text-muted); font-weight: 600; text-transform: uppercase; letter-spacing: 1px; display: flex; align-items: center; gap: 8px;}
-        .db-subtext { font-size: 0.8rem; color: #64748b; }
+        .db-info-group { display: flex; flex-direction: column; }
+        .db-label { font-size: 0.8rem; color: var(--text-muted); font-weight: 500; text-transform: uppercase; letter-spacing: 0.5px; }
+        .db-subtext { font-size: 0.75rem; color: #64748b; margin-top: 2px; }
         
-        .db-value-container { display: flex; align-items: baseline; gap: 6px; }
-        .db-value { font-size: 3rem; font-weight: 800; margin: 0; color: var(--text-main); line-height: 1; text-shadow: 0 4px 10px rgba(0,0,0,0.3); }
-        .db-unit { font-size: 1.2rem; color: var(--text-muted); font-weight: 600; }
+        .db-value-container { display: flex; align-items: baseline; gap: 4px; }
+        .db-value { font-size: 2.2rem; font-weight: 800; margin: 0; color: var(--text-main); line-height: 1; }
+        .db-unit { font-size: 1rem; color: var(--text-muted); font-weight: 600; }
         
-        /* Desain Saklar (Toggle Switch) Premium */
-        .switch { position: relative; display: inline-block; width: 60px; height: 32px; }
+        /* Kotak Kontrol Buzzer */
+        .control-box { 
+            background: rgba(30, 41, 59, 0.5); 
+            border-radius: 20px; padding: 16px 20px; 
+            display: flex; justify-content: space-between; align-items: center; 
+            border: 1px solid rgba(255, 255, 255, 0.05); 
+        }
+        .control-label { font-size: 0.9rem; font-weight: 600; color: #cbd5e1; display: flex; align-items: center; gap: 8px; }
+        
+        /* Desain Saklar (Toggle Switch) iOS Style Elegan */
+        .switch { position: relative; display: inline-block; width: 52px; height: 28px; }
         .switch input { opacity: 0; width: 0; height: 0; }
         .slider { 
             position: absolute; cursor: pointer; top: 0; left: 0; right: 0; bottom: 0; 
-            background-color: #334155; transition: .4s cubic-bezier(0.4, 0, 0.2, 1); 
+            background-color: #334155; transition: .3s cubic-bezier(0.4, 0, 0.2, 1); 
             border-radius: 34px; border: 1px solid rgba(255,255,255,0.05);
-            box-shadow: inset 0 2px 5px rgba(0,0,0,0.3);
         }
         .slider:before { 
-            position: absolute; content: ""; height: 24px; width: 24px; 
+            position: absolute; content: ""; height: 20px; width: 20px; 
             left: 3px; bottom: 3px; background-color: white; 
-            transition: .4s cubic-bezier(0.4, 0, 0.2, 1); 
+            transition: .3s cubic-bezier(0.4, 0, 0.2, 1); 
             border-radius: 50%; 
-            box-shadow: 0 4px 8px rgba(0,0,0,0.3);
+            box-shadow: 0 2px 4px rgba(0,0,0,0.2);
         }
-        input:checked + .slider { background-color: var(--accent-green); box-shadow: 0 0 15px rgba(16, 185, 129, 0.3); }
-        input:checked + .slider:before { transform: translateX(28px); }
+        input:checked + .slider { background-color: var(--accent-green); }
+        input:checked + .slider:before { transform: translateX(24px); }
 
+        /* Footer Info Kecil */
         .footer-info {
             text-align: center;
-            font-size: 0.8rem;
-            color: #475569;
-            letter-spacing: 0.5px;
-            font-weight: 500;
-        }
-
-        /* MEDIA QUERY UNTUK LAYAR BESAR (LAPTOP/TABLET) */
-        @media (min-width: 768px) {
-            .dashboard-wrapper { max-width: 850px; }
-            
-            /* Status sangat besar dan jelas di tengah */
-            .status-container { padding: 60px 40px 80px 40px; }
-            .icon-wrapper { width: 130px; height: 130px; font-size: 4rem; margin-bottom: 30px; }
-            .status-title { font-size: 4.5rem; }
-            .status-subtitle { font-size: 1.3rem; }
-            
-            .ripple-ring { width: 130px; height: 130px; }
-
-            /* Panel bawah dibagi menjadi 2 kolom rapi bersampingan */
-            .bottom-panel {
-                grid-template-columns: 1fr 1fr;
-                padding: 40px;
-                gap: 30px;
-            }
-
-            .info-box { padding: 30px; }
-            .db-value { font-size: 3.5rem; }
+            font-size: 0.75rem;
+            color: #64748b;
+            letter-spacing: 0.2px;
         }
     </style>
 </head>
 
-<body class="menunggu-mode">
-    <!-- Ornamen Background -->
-    <div class="ambient-orb orb-1"></div>
-    <div class="ambient-orb orb-2"></div>
-
+<body>
     <div class="dashboard-wrapper">
         
         <!-- Kartu Utama Dashboard -->
@@ -281,24 +215,23 @@
                     <div class="status-dot" id="statusDot"></div>
                     <span id="connectionBadge">Mencari Sinyal...</span>
                 </div>
-                <span style="font-size: 0.85rem; color: #64748b; font-weight: 600; letter-spacing: 1px;">ESP32 SENSOR</span>
+                <span style="font-size: 0.8rem; color: #64748b; font-weight: 600;">ESP32 IoT</span>
             </div>
 
             <!-- Status Peringatan Raksasa di Tengah -->
             <div class="status-container" id="statusContainer">
-                <div class="ripple-ring" id="rippleEffect"></div>
                 <div class="icon-wrapper" id="statusIcon">⏳</div>
                 <h1 class="status-title" id="statusText">MENUNGGU</h1>
-                <div class="status-subtitle" id="statusSub">Menghubungkan ke sistem...</div>
+                <div class="status-subtitle" id="statusSub">Menghubungkan ke Sensor ESP32...</div>
             </div>
 
-            <!-- Panel Data dan Kontrol di Bawah (Berjajar di Desktop) -->
+            <!-- Panel Data dan Kontrol di Bawah -->
             <div class="bottom-panel">
                 
                 <!-- Kotak Nilai dB -->
-                <div class="info-box">
+                <div class="db-box">
                     <div class="db-info-group">
-                        <span class="box-label">🎙️ Intensitas Suara</span>
+                        <span class="db-label">Intensitas Suara</span>
                         <span class="db-subtext">Ambang Batas: 55 dB</span>
                     </div>
                     <div class="db-value-container">
@@ -308,11 +241,10 @@
                 </div>
 
                 <!-- Kotak Kontrol Buzzer -->
-                <div class="info-box">
-                    <div class="db-info-group">
-                        <span class="box-label">🔔 Alarm Buzzer</span>
-                        <span class="db-subtext">Aktifkan peringatan audio</span>
-                    </div>
+                <div class="control-box">
+                    <span class="control-label">
+                        <span>🔔</span> Alarm Buzzer
+                    </span>
                     <label class="switch">
                         <input type="checkbox" id="buzzerToggle" onchange="toggleBuzzer(this.checked)" checked>
                         <span class="slider"></span>
@@ -323,7 +255,7 @@
         </div>
 
         <div class="footer-info">
-            NOISE GUARD SYSTEM &bull; REAL-TIME MONITORING
+            Noise Guard System &bull; Real-time Monitoring & Hosting Ready
         </div>
     </div>
 
@@ -335,14 +267,14 @@
 
         // Fungsi menarik data dari ESP32 secara berkala
         function fetchESP32Data() {
-            fetch('/api/sensor?t=' + Date.now(), { cache: 'no-store' })
+            fetch('/data')
                 .then(response => response.json())
                 .then(data => {
                     // Update Angka dB di bawah
                     document.getElementById('dbValue').innerText = data.db.toFixed(1);
 
-                    const bodyEl = document.body;
                     const mainCard = document.getElementById('mainCard');
+                    const statusContainer = document.getElementById('statusContainer');
                     const statusIcon = document.getElementById('statusIcon');
                     const statusText = document.getElementById('statusText');
                     const statusSub = document.getElementById('statusSub');
@@ -350,18 +282,16 @@
                     const connectionBadge = document.getElementById('connectionBadge');
 
                     connectionBadge.innerText = "Terhubung";
-                    statusDot.style.backgroundColor = "var(--accent-green)";
+                    statusDot.style.backgroundColor = "#34d399";
 
-                    // Ganti Tema, Teks, Ikon, dan Ornamen Berdasarkan Status dari ESP32
+                    // Ganti Tema, Teks, dan Ikon Berdasarkan Status dari ESP32
                     if (data.warning === true) {
                         mainCard.className = "card berisik-theme berisik-card";
-                        bodyEl.className = "berisik-mode"; // Mengubah warna background orb
                         statusIcon.innerHTML = "🚨";
-                        statusText.innerHTML = "BAHAYA!";
+                        statusText.innerHTML = "HARAP<br>TENANG!";
                         statusSub.innerText = "LINGKUNGAN TERLALU BISING (>55 dB)";
                     } else {
                         mainCard.className = "card aman-theme";
-                        bodyEl.className = "aman-mode"; // Mengubah warna background orb
                         statusIcon.innerHTML = "🛡️";
                         statusText.innerHTML = "AMAN";
                         statusSub.innerText = "Tingkat Suara Normal & Terkendali";
@@ -376,18 +306,14 @@
                     }
                 })
                 .catch(error => {
-                    // Jika ESP32 belum merespons (Offline / Gangguan)
-                    const bodyEl = document.body;
+                    // Jika ESP32 belum merespons (misal saat dites offline atau gangguan)
                     const mainCard = document.getElementById('mainCard');
-                    
                     mainCard.className = "card menunggu-theme";
-                    bodyEl.className = "menunggu-mode";
-                    
-                    document.getElementById('connectionBadge').innerText = "Menunggu Sinyal...";
-                    document.getElementById('statusDot').style.backgroundColor = "var(--accent-wait)";
+                    document.getElementById('connectionBadge').innerText = "Menunggu...";
+                    document.getElementById('statusDot').style.backgroundColor = "#94a3b8";
                     document.getElementById('statusIcon').innerHTML = "⏳";
                     document.getElementById('statusText').innerHTML = "MENUNGGU";
-                    document.getElementById('statusSub').innerText = "Mencari koneksi ke ESP32...";
+                    document.getElementById('statusSub').innerText = "Menghubungkan ke ESP32...";
                     console.log("Menunggu koneksi...", error);
                 });
         }
